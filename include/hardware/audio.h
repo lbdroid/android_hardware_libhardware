@@ -236,15 +236,6 @@ __BEGIN_DECLS
 /* Query ADSP Status */
 #define AUDIO_PARAMETER_KEY_ADSP_STATUS "ADSP_STATUS"
 
-/** Structure to save buffer information for applying effects for
-+ *  LPA buffers */
-struct buf_info {
-    int bufsize;
-    int nBufs;
-    int **buffers;
-};
-
-
 /**************************************/
 
 #ifdef QCOM_DIRECTTRACK
@@ -408,15 +399,6 @@ struct audio_stream_out {
     int (*get_render_position)(const struct audio_stream_out *stream,
                                uint32_t *dsp_frames);
 
-    /**
-     * start audio data rendering
-     */
-    int (*start)(struct audio_stream_out *stream);
-
-    /**
-     * stop audio data rendering
-     */
-    int (*stop)(struct audio_stream_out *stream);
     /**
      * get the local time at which the next write to the audio driver will be presented.
      * The units are microseconds, where the epoch is decided by the local audio HAL.
