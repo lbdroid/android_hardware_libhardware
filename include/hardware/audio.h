@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2011 The Android Open Source Project
- * Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
  * Not a Contribution.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,9 @@
 #include <hardware/hardware.h>
 #include <system/audio.h>
 #include <hardware/audio_effect.h>
+#ifdef AUDIO_LISTEN_ENABLED
+#include <listen_types.h>
+#endif
 
 __BEGIN_DECLS
 
@@ -126,6 +129,7 @@ __BEGIN_DECLS
 #define AUDIO_PARAMETER_STREAM_INPUT_SOURCE "input_source"   /* audio_source_t */
 #define AUDIO_PARAMETER_STREAM_SAMPLING_RATE "sampling_rate" /* uint32_t */
 
+#define AUDIO_PARAMETER_DEVICE_CONNECT "connect"            /* audio_devices_t */
 #define AUDIO_PARAMETER_DEVICE_DISCONNECT "disconnect"      /* audio_devices_t */
 
 /* Query supported formats. The response is a '|' separated list of strings from
@@ -142,6 +146,30 @@ __BEGIN_DECLS
  * Return a valid source (positive integer) or AUDIO_HW_SYNC_INVALID if an error occurs
  * or no HW sync source is used. */
 #define AUDIO_PARAMETER_STREAM_HW_AV_SYNC "hw_av_sync"
+
+/* Query handle fm parameter*/
+#define AUDIO_PARAMETER_KEY_HANDLE_FM "handle_fm"
+
+/* Query voip flag */
+#define AUDIO_PARAMETER_KEY_VOIP_CHECK "voip_flag"
+
+/* Query Fluence type */
+#define AUDIO_PARAMETER_KEY_FLUENCE_TYPE "fluence"
+
+/* Query if surround sound recording is supported */
+#define AUDIO_PARAMETER_KEY_SSR "ssr"
+
+/* Query if a2dp  is supported */
+#define AUDIO_PARAMETER_KEY_HANDLE_A2DP_DEVICE "isA2dpDeviceSupported"
+
+/* Query ADSP Status */
+#define AUDIO_PARAMETER_KEY_ADSP_STATUS "ADSP_STATUS"
+
+/* Query if Proxy can be Opend */
+#define AUDIO_CAN_OPEN_PROXY "can_open_proxy"
+
+/* Query fm volume */
+#define AUDIO_PARAMETER_KEY_FM_VOLUME "fm_volume"
 
 /**
  * audio codec parameters
@@ -200,6 +228,22 @@ __BEGIN_DECLS
 /* Query fm volume */
 #define AUDIO_PARAMETER_KEY_FM_VOLUME "fm_volume"
 #endif
+
+
+/* Query if surround sound recording is supported */
+#define AUDIO_PARAMETER_KEY_SSR "ssr"
+
+/* Query ADSP Status */
+#define AUDIO_PARAMETER_KEY_ADSP_STATUS "ADSP_STATUS"
+
+/** Structure to save buffer information for applying effects for
++ *  LPA buffers */
+struct buf_info {
+    int bufsize;
+    int nBufs;
+    int **buffers;
+};
+
 
 /**************************************/
 
@@ -365,6 +409,15 @@ struct audio_stream_out {
                                uint32_t *dsp_frames);
 
     /**
+     * start audio data rendering
+     */
+    int (*start)(struct audio_stream_out *stream);
+
+    /**
+     * stop audio data rendering
+     */
+    int (*stop)(struct audio_stream_out *stream);
+    /**
      * get the local time at which the next write to the audio driver will be presented.
      * The units are microseconds, where the epoch is decided by the local audio HAL.
      */
@@ -481,7 +534,6 @@ struct audio_stream_out {
     int (*is_buffer_available) (const struct audio_stream_out *stream,
                                      int *isAvail);
 #endif
-
 };
 typedef struct audio_stream_out audio_stream_out_t;
 
@@ -784,6 +836,28 @@ struct audio_hw_device {
     int (*set_audio_port_config)(struct audio_hw_device *dev,
                          const struct audio_port_config *config);
 
+#ifdef AUDIO_LISTEN_ENABLED
+    /** This method creates the listen session and returns handle */
+    int (*open_listen_session)(struct audio_hw_device *dev,
+                              listen_open_params_t *params,
+                              struct listen_session** handle);
+
+    /** This method closes the listen session  */
+    int (*close_listen_session)(struct audio_hw_device *dev,
+                                struct listen_session* handle);
+
+    /** This method sets the mad observer callback  */
+    int (*set_mad_observer)(struct audio_hw_device *dev,
+                            listen_callback_t cb_func);
+
+    /**
+     *   This method is used for setting listen hal specfic parameters.
+     *  If multiple paramets are set in one call and setting any one of them
+     *  fails it will return failure.
+     */
+    int (*listen_set_parameters)(struct audio_hw_device *dev,
+                                 const char *kv_pairs);
+#endif
 };
 typedef struct audio_hw_device audio_hw_device_t;
 

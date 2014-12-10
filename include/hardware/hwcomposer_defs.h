@@ -70,7 +70,7 @@ enum {
 };
 
 /*
- * hwc_layer_t::flags values
+* hwc_layer_t::flags values
  * Flags are set by SurfaceFlinger and read by the HAL
  */
 enum {
@@ -91,7 +91,12 @@ enum {
      */
     HWC_IS_CURSOR_LAYER = 0x00000002,
 
-    HWC_SCREENSHOT_ANIMATOR_LAYER = 0x00000003,
+    /*
+     * HWC_SCREENSHOT_ANIMATOR_LAYER is set by surfaceflinger to indicate that this
+     * layer is a screenshot animating layer.  HWC uses this info to disable rotation
+     * animation on External Display
+     */
+    HWC_SCREENSHOT_ANIMATOR_LAYER = 0x00000003
 };
 
 /*
@@ -207,6 +212,11 @@ enum {
      */
     HWC_DISPLAY_DPI_X                       = 4,
     HWC_DISPLAY_DPI_Y                       = 5,
+    /* Indicates if the display is secure
+     * For HDMI/WFD if the sink supports HDCP, it will be true
+     * Primary panel is always considered secure
+     */
+    HWC_DISPLAY_SECURE                      = 6,
 };
 
 /* Allowed events for hwc_methods::eventControl() */
